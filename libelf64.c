@@ -13,6 +13,8 @@
 #include <capstone/capstone.h>
 #include <openssl/evp.h>
 
+#define LONGESTOPCODE 10
+
 int checkElf64(Elf *e){
   int i;
       if ((i = gelf_getclass(e)) == ELFCLASSNONE)
@@ -122,21 +124,41 @@ void printInstructions(unsigned char* buffer, size_t buffersize, uint64_t addres
   /*Adapted from Capstone Library C Demonstration*/
   csh handle;
   cs_insn *insn;
-  size_t count;
+  size_t count, unique = 0;
   
   /*From Project 1 2019 Demo*/
   if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle)) {
     printf("ERROR: Failed to initialize engine!\n");
     return;
   }
-
-  cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
+  
   count = cs_disasm(handle, buffer, buffersize, address, 0, &insn);
+  char instructions[count][LONGESTOPCODE];
+  int isUnique = 1;
+  printf("%lu instructions\n\n", count);
   if (count){
     for (size_t j = 0; j < count; j++) {
-      printf("%p: %s\t\t%s\n", (void *) ((uintptr_t)insn[j].address), insn[j].mnemonic, insn[j].op_str);
-    } cs_free(insn, count);
-  } else {
+      isUnique = 1; 
+      for(size_t is = 0; is < unique; is++){
+	if(strcmp(instructions[is], insn[j].mnemonic) == 0) isUnique = 0; 
+      }
+      
+      if(isUnique){
+	strcpy(instructions[unique], insn[j].mnemonic);
+	unique++;
+      }
+    }
+
+    int counter; 
+    for(size_t m = 0; m < unique; m++){
+      counter = 1;
+      for(size_t j = 0; j < count; j++){
+	if(strcmp(instructions[m], insn[j].mnemonic) == 0) counter++;
+      } printf("%s\t%d\n", instructions[m], counter);
+    }
+    cs_free(insn, count);
+  }
+  else {
     printf("ERROR: Failed to disassemble given code!\n");
   }  cs_close(&handle);
 }
@@ -169,7 +191,7 @@ void parseSectionText(Elf *e){
 
   printf(".text\n");
   printf("Section starts at 0x%lx\n", shdr.sh_addr); 
-  printf("Section length: 0x%lx\n\n", shdr.sh_size);
+  printf("Section length: 0x%lx\n", shdr.sh_size);
 
   unsigned char *p;
   do{
@@ -277,10 +299,10 @@ void parseElf(int argc, char **argv) {
     printProgramHeaders(e);
     printSections(e);
   */
-  
+  printSHA1(e);
+  printf("\n");
   parseSectionText(e);
   printf("\n");
-  printSHA1(e);
   
   elf_end(e);
   close(fd); 
