@@ -7,7 +7,7 @@ a file on disk. Since the information collected could contain sensitive data, an
 must be obfuscated/encrypted in some way to prevent unauthorized access.
 
 ## Requirements
-
+```diff
 (3 pts) The application shall only analyze binaries built in the ELF64 format for an intel architecture.
 Files that are not ELF64 files shall not be analyzed beyond identifying that it is not an ELF64 file for an
 intel architecture.
@@ -66,3 +66,4 @@ software must use original routines or previously specified libraries for collec
 + (1 pts) The software shall be built for and run on Linux for a 64-bit intel architecture.
 
 + (1 pts) The software shall compile and run on the class VMs.
+```
