@@ -267,24 +267,21 @@ void printSHA1(Elf *e){
   6. Parse '.text' section data for instructions
 */
 
-void parseElf(int argc, char **argv) {
+void parseElf(char *file) {
   //int i;
   int fd;
   Elf *e;
   char *id;
 
-
-  if (argc < 2)
-    errx(EXIT_FAILURE, "Please provide a file argument.");
   if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE , "ELF library initialization "
 					       "failed: %s", elf_errmsg(-1));
 
-  if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
-    err(EXIT_FAILURE , "open \"%s\" failed", argv[1]);
+  if ((fd = open(file, O_RDONLY, 0)) < 0)
+    err(EXIT_FAILURE , "open \"%s\" failed", file);
 
   
-  e = openELF(argv[1], fd);
-  if(!checkElf64(e)) printf("%s is not an ELF-64 object.\n\n", argv[1]);
+  e = openELF(file, fd);
+  if(!checkElf64(e)) printf("%s is not an ELF-64 object.\n\n", file);
   
   if ((id = elf_getident(e, NULL)) == NULL)
     errx(EXIT_FAILURE , "getident() failed: %s.",elf_errmsg(-1));
