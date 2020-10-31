@@ -1,12 +1,12 @@
 # binscan
-##Description
+## Description
 
 Develop an application that reports information about binaries to a file for analysis and retrieval.
 This application is responsible for analyzing executable ELF files and storing the information gathered into
 a file on disk. Since the information collected could contain sensitive data, any information stored on disk
 must be obfuscated/encrypted in some way to prevent unauthorized access.
 
-##Requirements
+## Requirements
 
 (3 pts) The application shall only analyze binaries built in the ELF64 format for an intel architecture.
 Files that are not ELF64 files shall not be analyzed beyond identifying that it is not an ELF64 file for an
