@@ -18,4 +18,4 @@ $(OBJ2): binscan.c
 	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $(OBJ2)
 
 clean:
-	rm *.o 
+	rm *.o binscan

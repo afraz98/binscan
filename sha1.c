@@ -3,7 +3,7 @@
   For more information please visit https://www.openssl.org/docs/man1.0.2/man3/EVP_DigestInit.html
 */
 
-
+#include "bin/libelf64.h"
 #include <openssl/evp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +15,6 @@ void printSHA1(int length, unsigned char* value){
     printf("%02x", value[i]);
   } printf("\n");
 }
-
 
 int main(){
   EVP_MD_CTX *mdctx;
