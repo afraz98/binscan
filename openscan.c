@@ -2,15 +2,35 @@
 #include <stdlib.h>
 #include <string.h>
 #include "bin/openanalysis.h"
+#include "bin/binproto.h"
+
 #define PASSWORD_LENGTH 20
 
-
 void analysisUser(char *file){
-  printf("Analyzing file as user.\n");
+  FILE *input;
+  FileHeader fh;
+  SHA1Record sharecord;
+  IBuffer ib;
+  
+  printf("Analyzing file as user..\n\n");
+  input = fopen(file, "r");
+  fread(&fh, sizeof(FileHeader), 1, input);
+  fread(&sharecord, sizeof(SHA1Record), 1, input);
+  fread(&ib, sizeof(IBuffer), 1, input);
+  
+  printf("Analysis of %s binary\n\n", fh.file_name);
+  printf("SHA1: ");
+  for(int i = 0; i < SHA_DIGEST_LENGTH; i++){
+    printf("%02x", sharecord.sha1[i]);
+  } printf("\n\n");
+
+  for(int i = 0; i < ib.ninstructions; i++){
+    printf("%s\t%d\n", ib.instructions[i].instruction, ib.instructions[i].instruction_calls);
+  }
 }
 
 void analysisAdmin(char *file){
-  printf("Analyzing file as admin.\n"); 
+  printf("Analyzing file as admin..\n\n"); 
 }
 
 void openAnalysis(char *file){

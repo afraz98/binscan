@@ -1,10 +1,13 @@
+#include<openssl/sha.h>
+
 #ifndef BIN_PROTO
 #define BIN_PROTO
-
-#include <openssl/sha.h>
+#define LONGEST_OPCODE 10
+#define MAX_INSTRUCTIONS 1000
 
 typedef enum{
   SHA1_RECORD,
+  I_BUFFER,
 } EntryType;
 
 typedef struct{
@@ -17,4 +20,14 @@ typedef struct{
   uint8_t sha1[SHA_DIGEST_LENGTH];
 } SHA1Record;
 
+typedef struct{
+  char instruction[LONGEST_OPCODE];
+  int instruction_calls;
+} Instruction;
+
+typedef struct{
+  EntryType et; 
+  Instruction instructions[MAX_INSTRUCTIONS];
+  int ninstructions; 
+} IBuffer;
 #endif 

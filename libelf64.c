@@ -51,60 +51,61 @@ GElf_Shdr findTextSection(Elf *e, Elf_Scn **s){
   } return shdr; 
 }
 
-void printInstructions(unsigned char* buffer, size_t buffersize, uint64_t address){
+IBuffer printInstructions(unsigned char* buffer, size_t buffersize, uint64_t address){
   /************************************* PARSE INSTRUCTIONS *****************************************************/
   /*Adapted from Capstone Library C Demonstration.
     For more information visit https://www.capstone-engine.org/lang_c.html*/
   
   csh handle;
   cs_insn *insn;
-  size_t count, unique = 0;
-  
+  size_t count;
+  IBuffer ib;
+  ib.ninstructions = 0; 
   /*From Project 1 2019 Demo*/
   if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle)) {
     printf("ERROR: Failed to initialize engine!\n");
-    return;
+    return ib;
   }
   
   count = cs_disasm(handle, buffer, buffersize, address, 0, &insn);
-  char instructions[count][LONGESTOPCODE];
   int isUnique = 1;
   printf("%lu instructions\n\n", count);
   if (count){
     for (size_t j = 0; j < count; j++) {
       isUnique = 1; 
-      for(size_t is = 0; is < unique; is++){
-	if(strcmp(instructions[is], insn[j].mnemonic) == 0) isUnique = 0; 
+      for(size_t is = 0; is < ib.ninstructions; is++){
+	if(strcmp(ib.instructions[is].instruction, insn[j].mnemonic) == 0) isUnique = 0; 
       }
       
       if(isUnique){
-	strcpy(instructions[unique], insn[j].mnemonic);
-	unique++;
+	strcpy(ib.instructions[ib.ninstructions].instruction, insn[j].mnemonic);
+	ib.ninstructions++;
       }
     }
 
-    int counter; 
-    for(size_t m = 0; m < unique; m++){
-      counter = 1;
+    for(size_t m = 0; m < ib.ninstructions; m++){
+      ib.instructions[m].instruction_calls = 1;
       for(size_t j = 0; j < count; j++){
-	if(strcmp(instructions[m], insn[j].mnemonic) == 0) counter++;
-      } printf("%s\t%d\n", instructions[m], counter);
+	if(strcmp(ib.instructions[m].instruction, insn[j].mnemonic) == 0) ib.instructions[m].instruction_calls++;
+      } printf("%s\t%d\n", ib.instructions[m].instruction, ib.instructions[m].instruction_calls);
     }
     cs_free(insn, count);
   }
   else {
     printf("ERROR: Failed to disassemble given code!\n");
   }  cs_close(&handle);
+
+  return ib; 
 }
 
-void parseSectionText(Elf *e){
-  size_t n;
+IBuffer parseSectionText(Elf *e){
   Elf_Scn *scn; 
   Elf_Data *data; 
   GElf_Shdr shdr;
+  IBuffer instructions;
   
   shdr = findTextSection(e,&scn); 
-  data = NULL; n = 0; 
+  data = NULL; 
   data = elf_getdata(scn, data); 
   
   printf(".text\n");
@@ -112,11 +113,9 @@ void parseSectionText(Elf *e){
   printf("Section length: 0x%lx\n", shdr.sh_size);
   
   unsigned char *p;
-  do{
-    p = (unsigned char *)data->d_buf;
-    printInstructions(p, data->d_size, shdr.sh_addr);
-    n++; p++;
-  }while(n < shdr.sh_size && (data = elf_getdata(scn, data)) != NULL);   
+  p = (unsigned char *)data->d_buf;
+  instructions = printInstructions(p, data->d_size, shdr.sh_addr);
+  return instructions; 
 }
 
 void printSHA1(Elf *e, unsigned char *sha_value){
@@ -146,15 +145,21 @@ void printSHA1(Elf *e, unsigned char *sha_value){
   } printf("\n");
 }
 
-int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1){
+int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1, IBuffer ib){
   uint8_t *bptr = buffer;
   strncpy(((FileHeader *)buffer)->file_name, argfile, sizeof(((FileHeader *)buffer)->file_name)-1);
   bptr += sizeof(FileHeader);
-
+  
   ((SHA1Record *)bptr)->et = SHA1_RECORD;
   memcpy(&((SHA1Record *)bptr)->sha1, sha1, sizeof((SHA1Record *)bptr)->sha1);
   ((FileHeader *)buffer)->data_length += sizeof(SHA1Record);
-  return sizeof(FileHeader) + ((FileHeader *)buffer)->data_length;
+  bptr += sizeof(SHA1Record); 
+  
+  //((IBuffer *)bptr)->et = I_BUFFER;
+  //memcpy(&((IBuffer *)bptr)->instructions, ib.instructions, sizeof((IBuffer *)bptr)->instructions);
+  //((IBuffer *)bptr)->ninstructions = ib.ninstructions;
+  //((FileHeader *)buffer)->data_length += sizeof(IBuffer);
+  return sizeof(FileHeader) + ((FileHeader *)buffer)->data_length; 
 }
 
 
@@ -173,9 +178,10 @@ void parseElf(char *file) {
   Elf *e;
   char *outputfile;
   FILE *outfile;
-  uint8_t buffer[0x1000]; 
+  uint8_t buffer[0x5000]; 
   unsigned char sha1[SHA_DIGEST_LENGTH]; 
-  int recordsize; 
+  int recordsize;
+  IBuffer ib; 
   
   if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE , "ELF library initialization failed: %s", elf_errmsg(-1));
 
@@ -191,7 +197,7 @@ void parseElf(char *file) {
   printf("\n");
 
   //Print unique instructions with call counts
-  parseSectionText(e);
+  ib = parseSectionText(e);
   printf("\n");
 
   //Close ELF Object, File
@@ -205,9 +211,10 @@ void parseElf(char *file) {
   strcat(outputfile, ".bin");
 
   //Write contents to file
-  recordsize = fillFileBuffer(buffer, file, sha1);
+  recordsize = fillFileBuffer(buffer, file, sha1, ib);
   outfile = fopen(outputfile, "ab+");
   fwrite(buffer, sizeof(uint8_t), recordsize, outfile);
+  fwrite(&ib, sizeof(IBuffer), 1, outfile);
   fflush(outfile);
   fclose(outfile);
   exit(EXIT_SUCCESS);
