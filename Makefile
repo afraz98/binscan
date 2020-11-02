@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall
-FLAGS = -lelf -lcrypto -lcapstone
+FLAGS = -lelf -lcrypto -lcapstone -lm
 LIBELF = libelf64
 OBJ1 = libelf64.o
 OBJ2 = binscan.o

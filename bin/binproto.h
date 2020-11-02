@@ -8,6 +8,7 @@
 typedef enum{
   SHA1_RECORD,
   I_BUFFER,
+  RENTROPY,
 } EntryType;
 
 typedef struct{
@@ -25,9 +26,12 @@ typedef struct{
   int instruction_calls;
 } Instruction;
 
-typedef struct{
-  EntryType et; 
+typedef struct{ 
   Instruction instructions[MAX_INSTRUCTIONS];
   int ninstructions; 
 } IBuffer;
+
+typedef struct{
+  double entropy;
+} RenyiEntropy;
 #endif 

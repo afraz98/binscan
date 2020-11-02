@@ -11,12 +11,14 @@ void analysisUser(char *file){
   FileHeader fh;
   SHA1Record sharecord;
   IBuffer ib;
+  RenyiEntropy r;
   
   printf("Analyzing file as user..\n\n");
   input = fopen(file, "r");
   fread(&fh, sizeof(FileHeader), 1, input);
   fread(&sharecord, sizeof(SHA1Record), 1, input);
   fread(&ib, sizeof(IBuffer), 1, input);
+  fread(&r, sizeof(RenyiEntropy), 1, input); 
   
   printf("Analysis of %s binary\n\n", fh.file_name);
   printf("SHA1: ");
@@ -26,7 +28,9 @@ void analysisUser(char *file){
 
   for(int i = 0; i < ib.ninstructions; i++){
     printf("%s\t%d\n", ib.instructions[i].instruction, ib.instructions[i].instruction_calls);
-  }
+  } printf("\n");
+
+  printf("Renyi Entropy: %lf\n\n", r.entropy); 
 }
 
 void analysisAdmin(char *file){

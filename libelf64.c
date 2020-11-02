@@ -14,9 +14,7 @@
 
 #include <capstone/capstone.h>
 #include <openssl/sha.h>
-#include <openssl/evp.h>
-
-#define LONGESTOPCODE 10
+#include <math.h>
 
 int checkElf64(Elf *e){
   int i;
@@ -145,6 +143,7 @@ void printSHA1(Elf *e, unsigned char *sha_value){
   } printf("\n");
 }
 
+/*fillFileBuffer adapted from Project 1 Example from 2019 given.*/
 int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1, IBuffer ib){
   uint8_t *bptr = buffer;
   strncpy(((FileHeader *)buffer)->file_name, argfile, sizeof(((FileHeader *)buffer)->file_name)-1);
@@ -154,12 +153,47 @@ int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1, IBuffer ib){
   memcpy(&((SHA1Record *)bptr)->sha1, sha1, sizeof((SHA1Record *)bptr)->sha1);
   ((FileHeader *)buffer)->data_length += sizeof(SHA1Record);
   bptr += sizeof(SHA1Record); 
-  
-  //((IBuffer *)bptr)->et = I_BUFFER;
-  //memcpy(&((IBuffer *)bptr)->instructions, ib.instructions, sizeof((IBuffer *)bptr)->instructions);
-  //((IBuffer *)bptr)->ninstructions = ib.ninstructions;
-  //((FileHeader *)buffer)->data_length += sizeof(IBuffer);
   return sizeof(FileHeader) + ((FileHeader *)buffer)->data_length; 
+}
+
+RenyiEntropy calculateEntropy(Elf *e){
+  RenyiEntropy r;  
+  
+  Elf_Scn *scn;
+  Elf_Data *data;
+  unsigned char* start, *next;
+  findTextSection(e, &scn);
+  data = NULL; data = elf_rawdata(scn, data);
+
+  double num_bytes = 0; 
+  start = data->d_buf; //Point to start of section data
+  while(start < (unsigned char*) (data->d_buf + data->d_size)){
+    start++; num_bytes++;
+  } printf("%d bytes in section .text\n", (int) num_bytes);
+
+  double frequency = 0;
+  double probability_sum = 0.0; 
+  start = data->d_buf;
+
+  while(start < (unsigned char*) (data->d_buf + data->d_size)){
+    next = start;
+    next++;
+    frequency = 1; 
+    while(next < (unsigned char*) (data->d_buf + data->d_size)){
+      if(*next == *start){
+	frequency++;
+      } next++; 
+    }
+
+    probability_sum += pow((frequency/num_bytes),2);
+    probability_sum = 1 / probability_sum;
+    start++; 
+  }
+
+  r.entropy = log(probability_sum) / log(256);
+  if(r.entropy < 0.0) r.entropy *= -1; 
+  printf("Renyi Entropy: %lf\n", r.entropy);
+  return r; 
 }
 
 
@@ -170,9 +204,10 @@ int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1, IBuffer ib){
   2. Print SHA1 Hash for .text section byte data
   3. Parse '.text' section data for instructions
   4. Print unique instructions with amount of calls 
+  5. Calculate Renyi Entropy for bytes of text section
+  6. Write contents to '[argfile].bin' 
 */
 
-/*Source code adapted from Project 1 Example from 2019 given.*/
 void parseElf(char *file) {
   int fd;
   Elf *e;
@@ -182,6 +217,7 @@ void parseElf(char *file) {
   unsigned char sha1[SHA_DIGEST_LENGTH]; 
   int recordsize;
   IBuffer ib; 
+  RenyiEntropy r; 
   
   if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE , "ELF library initialization failed: %s", elf_errmsg(-1));
 
@@ -200,6 +236,9 @@ void parseElf(char *file) {
   ib = parseSectionText(e);
   printf("\n");
 
+  //Print Renyi Entropy of .text section
+  r = calculateEntropy(e); 
+  
   //Close ELF Object, File
   elf_end(e);
   close(fd);
@@ -213,8 +252,17 @@ void parseElf(char *file) {
   //Write contents to file
   recordsize = fillFileBuffer(buffer, file, sha1, ib);
   outfile = fopen(outputfile, "ab+");
+
+  //SHA1 and File Header
   fwrite(buffer, sizeof(uint8_t), recordsize, outfile);
+
+  //Instruction buffer
   fwrite(&ib, sizeof(IBuffer), 1, outfile);
+
+  //Renyi Entropy
+  fwrite(&r, sizeof(RenyiEntropy), 1, outfile); 
+  
+  //Flush and close output file
   fflush(outfile);
   fclose(outfile);
   exit(EXIT_SUCCESS);
