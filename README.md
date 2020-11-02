@@ -15,9 +15,9 @@ intel architecture.
 The application shall collect and output to STDOUT at least all of the following classes of information
 about each binary it analyzes:
 
-2.1. (5 pts) One of the attributes shall a **SHA-1 hash of the file’s .text section.**
++ 2.1. (5 pts) One of the attributes shall a **SHA-1 hash of the file’s .text section.**
 
-2.2. (5 pts) One of the attributes must be the **count of all unique instructions.** The output should be
++ 2.2. (5 pts) One of the attributes must be the **count of all unique instructions.** The output should be
 the instruction and the number of times it appears (e.g., ‘mov, 50’)
 
 2.3. (8 pts) One of the attributes shall be the **Renyi quadratic entropy of the file’s .text section.**
@@ -28,17 +28,17 @@ count of the number of calls to each.
 2.5. (8 pts) The fifth attribute is developer defined; it should be obvious to the user what the
 attribute is. 1
 
-(10 pts) The software shall define and use an **original binary format for persistent storage of data on
++ (10 pts) The software shall define and use an **original binary format for persistent storage of data on
 disk** (i.e., the stored data must be retrievable across different executions of the software), and the
 stored date must include all the data printed to STDOUT.
 
 (8 pts) The software shall **obfuscate or encrypt the file contents on disk** to increase the difficulty of
 individuals examining the file contents in the case of a compromise or unauthorized system access.
 
-(2 pts) The software shall provide an **authentication mechanism** prior to retrieving and displaying
++ (2 pts) The software shall provide an **authentication mechanism** prior to retrieving and displaying
 information from the binary file.
 
-(8 pts) The software shall be able to **retrieve and display information about previously analyzed
++ (8 pts) The software shall be able to **retrieve and display information about previously analyzed
 binaries from the data store for a specific user and provide the ability to delete records using an
 administrator mode.** That is to say that a valid user should be able to view previously analyzed
 binaries from the data store and only a superuser/administrator has the ability to view and remove
@@ -52,8 +52,8 @@ any record from the data store.
 
 + (1 pts) The software shall use the capstone library for binary disassembly.
 
-(8 pts) The software shall contain at least one intentional software vulnerability that is attackable via
-either user input or malformed files.
++ (8 pts) The software shall contain at least one intentional software vulnerability that is attackable via
+either user input or malformed files. **NOTE: PUT THIS IN DOCUMENTATION**
 
 (10 pts) The software shall contain at least one function written in Intel assembly. This function must
 be used functionally as part of your implementation of the requirements. It cannot just be a copy of
