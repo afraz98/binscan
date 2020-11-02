@@ -14,6 +14,7 @@
 
 #include <capstone/capstone.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
 #include <math.h>
 
 int checkElf64(Elf *e){
@@ -116,6 +117,35 @@ IBuffer parseSectionText(Elf *e){
   return instructions; 
 }
 
+MD5Record printMD5(Elf *e){
+  MD5Record record;
+  Elf_Scn *scn;
+  Elf_Data *data;
+  EVP_MD_CTX *mdctx;
+  unsigned int md5_length;
+
+  mdctx = EVP_MD_CTX_create();
+  EVP_DigestInit_ex(mdctx, EVP_md5(), NULL);
+  
+  findTextSection(e, &scn);
+  data = NULL;
+  data = elf_rawdata(scn, data); //Retrieve raw byte data of .text section
+  unsigned char *p = (unsigned char *) data->d_buf; //Make byte pointer of data buffer pointer
+  while(p < (unsigned char *) (data->d_buf + data->d_size)){
+    EVP_DigestUpdate(mdctx, p, sizeof(unsigned char));
+    p++;
+  } EVP_DigestFinal_ex(mdctx, record.md5, &md5_length); 
+
+  EVP_MD_CTX_destroy(mdctx);
+  
+  printf("MD5: ");
+  for(int i = 0; i < MD5_DIGEST_LENGTH; i++){
+    printf("%02x", record.md5[i]);
+  } printf("\n");
+
+  return record; 
+}
+
 void printSHA1(Elf *e, unsigned char *sha_value){
   Elf_Scn *scn;
   Elf_Data *data;
@@ -213,11 +243,13 @@ void parseElf(char *file) {
   Elf *e;
   char *outputfile;
   FILE *outfile;
-  uint8_t buffer[0x5000]; 
-  unsigned char sha1[SHA_DIGEST_LENGTH]; 
+  uint8_t buffer[0x6000]; 
+
   int recordsize;
   IBuffer ib; 
   RenyiEntropy r; 
+  MD5Record rmd5;
+  unsigned char sha1[SHA_DIGEST_LENGTH];
   
   if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE , "ELF library initialization failed: %s", elf_errmsg(-1));
 
@@ -238,6 +270,9 @@ void parseElf(char *file) {
 
   //Print Renyi Entropy of .text section
   r = calculateEntropy(e); 
+
+  //Print MD5 Checksum of .text section
+  rmd5 = printMD5(e);
   
   //Close ELF Object, File
   elf_end(e);
@@ -246,9 +281,12 @@ void parseElf(char *file) {
   //Generate output file name from file argument
   outputfile = malloc(strlen(file) + strlen(".bin")) + 1;
   outputfile[0] = '\0';
+
   strcat(outputfile, file);
   strcat(outputfile, ".bin");
 
+  printf("Saving analysis to %s ..\n\n\n", outputfile); 
+  
   //Write contents to file
   recordsize = fillFileBuffer(buffer, file, sha1, ib);
   outfile = fopen(outputfile, "ab+");
@@ -261,6 +299,9 @@ void parseElf(char *file) {
 
   //Renyi Entropy
   fwrite(&r, sizeof(RenyiEntropy), 1, outfile); 
+
+  //MD5 Record
+  fwrite(&rmd5, sizeof(MD5Record), 1, outfile); 
   
   //Flush and close output file
   fflush(outfile);

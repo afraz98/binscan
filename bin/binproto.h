@@ -1,4 +1,6 @@
 #include<openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/md5.h>
 
 #ifndef BIN_PROTO
 #define BIN_PROTO
@@ -34,4 +36,8 @@ typedef struct{
 typedef struct{
   double entropy;
 } RenyiEntropy;
+
+typedef struct{
+  uint8_t md5[MD5_DIGEST_LENGTH];
+} MD5Record; 
 #endif 

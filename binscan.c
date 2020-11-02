@@ -10,7 +10,8 @@ void printHelp(){
   printf("Current supported options:\n\n");
 
   printf("-help: Print information on binscan\n");
-  printf("-analyze: Analyze ELF-64 binary. Requires file argument. Example call: ./binscan -analyze binary\n"); 
+  printf("-analyze: Analyze ELF-64 binary. Requires file argument. Example call: ./binscan -analyze binary\n");
+  printf("-help: Open binary file produced by analyze command. !! Password Authentication necessary !!\n"); 
 }
 
 int main(int argc, char **argv){
