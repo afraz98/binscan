@@ -12,7 +12,7 @@ void analysisUser(char *file){
   SHA1Record sharecord;
   IBuffer ib;
   RenyiEntropy r;
-  MD5Record mdrecord; 
+  SHA256Record sha256record; 
   
   printf("Analyzing file as user..\n\n");
   input = fopen(file, "r");
@@ -20,7 +20,7 @@ void analysisUser(char *file){
   fread(&sharecord, sizeof(SHA1Record), 1, input);
   fread(&ib, sizeof(IBuffer), 1, input);
   fread(&r, sizeof(RenyiEntropy), 1, input); 
-  fread(&mdrecord, sizeof(MD5Record), 1, input);
+  fread(&sha256record, sizeof(SHA256Record), 1, input);
   
   printf("Analysis of %s binary\n\n", fh.file_name);
   printf("SHA1: ");
@@ -34,9 +34,9 @@ void analysisUser(char *file){
 
   printf("Renyi Entropy: %lf\n\n", r.entropy);
 
-  printf("MD5: ");
-  for(unsigned int i = 0; i < MD5_DIGEST_LENGTH; i++){
-    printf("%02x", mdrecord.md5[i]);
+  printf("SHA256: ");
+  for(unsigned int i = 0; i < SHA256_DIGEST_LENGTH; i++){
+    printf("%02x", sha256record.sha256[i]);
   } printf("\n"); 
 }
 

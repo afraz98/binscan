@@ -117,30 +117,27 @@ IBuffer parseSectionText(Elf *e){
   return instructions; 
 }
 
-MD5Record printMD5(Elf *e){
-  MD5Record record;
+SHA256Record printSHA256(Elf *e){
+  SHA256Record record;
   Elf_Scn *scn;
   Elf_Data *data;
-  EVP_MD_CTX *mdctx;
-  unsigned int md5_length;
+  SHA256_CTX shactx;
+  unsigned int sha256_length;
 
-  mdctx = EVP_MD_CTX_create();
-  EVP_DigestInit_ex(mdctx, EVP_md5(), NULL);
+  SHA256_Init(&shactx);
   
   findTextSection(e, &scn);
   data = NULL;
   data = elf_rawdata(scn, data); //Retrieve raw byte data of .text section
   unsigned char *p = (unsigned char *) data->d_buf; //Make byte pointer of data buffer pointer
   while(p < (unsigned char *) (data->d_buf + data->d_size)){
-    EVP_DigestUpdate(mdctx, p, sizeof(unsigned char));
+    SHA256_Update(&shactx, p, sizeof(unsigned char));
     p++;
-  } EVP_DigestFinal_ex(mdctx, record.md5, &md5_length); 
-
-  EVP_MD_CTX_destroy(mdctx);
+  } SHA256_Final(record.sha256, &shactx); 
   
-  printf("MD5: ");
-  for(int i = 0; i < MD5_DIGEST_LENGTH; i++){
-    printf("%02x", record.md5[i]);
+  printf("SHA256: ");
+  for(int i = 0; i < SHA256_DIGEST_LENGTH; i++){
+    printf("%02x", record.sha256[i]);
   } printf("\n");
 
   return record; 
@@ -173,19 +170,6 @@ void printSHA1(Elf *e, unsigned char *sha_value){
   } printf("\n");
 }
 
-/*fillFileBuffer adapted from Project 1 Example from 2019 given.*/
-int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1, IBuffer ib){
-  uint8_t *bptr = buffer;
-  strncpy(((FileHeader *)buffer)->file_name, argfile, sizeof(((FileHeader *)buffer)->file_name)-1);
-  bptr += sizeof(FileHeader);
-  
-  ((SHA1Record *)bptr)->et = SHA1_RECORD;
-  memcpy(&((SHA1Record *)bptr)->sha1, sha1, sizeof((SHA1Record *)bptr)->sha1);
-  ((FileHeader *)buffer)->data_length += sizeof(SHA1Record);
-  bptr += sizeof(SHA1Record); 
-  return sizeof(FileHeader) + ((FileHeader *)buffer)->data_length; 
-}
-
 RenyiEntropy calculateEntropy(Elf *e){
   RenyiEntropy r;  
   
@@ -216,7 +200,6 @@ RenyiEntropy calculateEntropy(Elf *e){
     }
 
     probability_sum += pow((frequency/num_bytes),2);
-    probability_sum = 1 / probability_sum;
     start++; 
   }
 
@@ -225,6 +208,20 @@ RenyiEntropy calculateEntropy(Elf *e){
   printf("Renyi Entropy: %lf\n", r.entropy);
   return r; 
 }
+
+/*fillFileBuffer adapted from Project 1 Example from 2019 given.*/
+int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1, IBuffer ib){
+  uint8_t *bptr = buffer;
+  strncpy(((FileHeader *)buffer)->file_name, argfile, sizeof(((FileHeader *)buffer)->file_name)-1);
+  bptr += sizeof(FileHeader);
+
+  ((SHA1Record *)bptr)->et = SHA1_RECORD;
+  memcpy(&((SHA1Record *)bptr)->sha1, sha1, sizeof((SHA1Record *)bptr)->sha1);
+  ((FileHeader *)buffer)->data_length += sizeof(SHA1Record);
+  bptr += sizeof(SHA1Record);
+  return sizeof(FileHeader) + ((FileHeader *)buffer)->data_length;
+}
+
 
 
 /*
@@ -243,12 +240,12 @@ void parseElf(char *file) {
   Elf *e;
   char *outputfile;
   FILE *outfile;
-  uint8_t buffer[0x6000]; 
+  uint8_t buffer[0x5000]; 
 
   int recordsize;
   IBuffer ib; 
   RenyiEntropy r; 
-  MD5Record rmd5;
+  SHA256Record rsha256;
   unsigned char sha1[SHA_DIGEST_LENGTH];
   
   if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE , "ELF library initialization failed: %s", elf_errmsg(-1));
@@ -272,7 +269,7 @@ void parseElf(char *file) {
   r = calculateEntropy(e); 
 
   //Print MD5 Checksum of .text section
-  rmd5 = printMD5(e);
+  rsha256 = printSHA256(e);
   
   //Close ELF Object, File
   elf_end(e);
@@ -300,8 +297,8 @@ void parseElf(char *file) {
   //Renyi Entropy
   fwrite(&r, sizeof(RenyiEntropy), 1, outfile); 
 
-  //MD5 Record
-  fwrite(&rmd5, sizeof(MD5Record), 1, outfile); 
+  //SHA256 Record
+  fwrite(&rsha256, sizeof(SHA256Record), 1, outfile); 
   
   //Flush and close output file
   fflush(outfile);

@@ -4,8 +4,8 @@
 
 #ifndef BIN_PROTO
 #define BIN_PROTO
-#define LONGEST_OPCODE 10
-#define MAX_INSTRUCTIONS 1000
+#define LONGEST_OPCODE 15
+#define MAX_INSTRUCTIONS 10000
 
 typedef enum{
   SHA1_RECORD,
@@ -38,6 +38,6 @@ typedef struct{
 } RenyiEntropy;
 
 typedef struct{
-  uint8_t md5[MD5_DIGEST_LENGTH];
-} MD5Record; 
+  uint8_t sha256[SHA256_DIGEST_LENGTH];
+} SHA256Record; 
 #endif 
