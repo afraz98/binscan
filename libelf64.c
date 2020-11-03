@@ -68,7 +68,6 @@ IBuffer printInstructions(unsigned char* buffer, size_t buffersize, uint64_t add
   
   count = cs_disasm(handle, buffer, buffersize, address, 0, &insn); //Pass buffer argument, size, section address to start disassembly
   int isUnique = 1; //is this instruction unique? 
-  printf("%lu instructions\n\n", count); //Print number of instructions
   if (count){ //Count > 0?
     for (size_t j = 0; j < count; j++) { //Iterate over instructions 
       isUnique = 1; //Unique instruction flag
@@ -142,6 +141,7 @@ SHA256Record printSHA256(Elf *e){
   return record; //Return SHA256 record
 }
 
+//Calculate and print SHA1 checksum of text section
 void printSHA1(Elf *e, byte *sha_value){
   Elf_Scn *scn;
   Elf_Data *data;
@@ -169,6 +169,7 @@ void printSHA1(Elf *e, byte *sha_value){
   } printf("\n");
 }
 
+//Check if byte array contains a certain byte 
 int containsByte(byte *array, int length, byte b){
   if (length == 0){ return 0; } //Empty array
   for(int i = 0; i < length; i++){
@@ -176,12 +177,14 @@ int containsByte(byte *array, int length, byte b){
   } return 0; 
 }
 
+//Calculate and print Renyi Entropy of text section
 RenyiEntropy calculateEntropy(Elf *e){
   RenyiEntropy r;  //Entropy value
   
   Elf_Scn *scn;
   Elf_Data *data;
   byte* start, *next;
+
   findTextSection(e, &scn);
   data = NULL; data = elf_rawdata(scn, data);
 
@@ -195,7 +198,7 @@ RenyiEntropy calculateEntropy(Elf *e){
   byte textBytes[(int) num_bytes]; //Array of unique bytes
 
   double frequency = 0; //Frequency of byte being checked
-  double probability_sum = 0.0;//Ongoing sum of byte probabilities
+  double probability_sum = 0.0;//Ongoing sum of squared byte probabilities
   start = data->d_buf;
 
   while(start < (byte *) (data->d_buf + data->d_size)){
@@ -214,13 +217,12 @@ RenyiEntropy calculateEntropy(Elf *e){
     } 
   }
   
-  r.entropy = log(probability_sum) / log(256); //log256(probabilitysum)
-  if(r.entropy < 0.0) r.entropy *= -1; //Make sure entropy is positive
-  
+  r.entropy = fabs(log(probability_sum) / log(256)); //|log256(probabilitysum)|
   printf("Renyi Entropy: %lf\n", r.entropy); //Print entropy
   return r; //Return entropy struct
 }
 
+//Write SHA1Record and File header to output file.
 /*fillFileBuffer adapted from Project 1 Example from 2019 given.*/
 int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1){
   uint8_t *bptr = buffer; //Write file header to outfile
@@ -240,35 +242,41 @@ int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1){
   Procedure:
   
   1. Open ELF-64 argument from file
-  2. Print SHA1 Hash for .text section byte data
+  2. Calculate and print SHA1 Hash for .text section byte data
   3. Parse '.text' section data for instructions
   4. Print unique instructions with amount of calls 
   5. Calculate Renyi Entropy for bytes of text section
-  6. Write contents to '[argfile].bin' 
+  6. Calculate and print SHA256 Hash for .text section byte data
+  7. Write contents to '[argfile].bin' 
 */
 
+//Main driver function
 void parseElf(char *file) {
-  int fd;
-  Elf *e;
-  char *outputfile;
-  FILE *outfile;
+  int fd; //File descriptor
+  Elf *e; //ELF Object pointer
+  char *outputfile; //Output file name
+  FILE *outfile; //Output file object
   
-  uint8_t buffer[0x5000]; //Outfile buffer
+  byte buffer[0x5000]; //Outfile buffer
   int recordsize; //Size of outfile buffer
 
-  IBuffer ib; 
-  RenyiEntropy r; 
-  SHA256Record rsha256;
-  byte sha1[SHA_DIGEST_LENGTH];
+  IBuffer ib; //Instruction buffer
+  RenyiEntropy r; //Renyi entropy struct
+  SHA256Record rsha256; //SHA256 checksum struct
+  byte sha1[SHA_DIGEST_LENGTH]; //SHA1 checksum byte array 
   
-  if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE , "ELF library initialization failed: %s", elf_errmsg(-1));
+  if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE ,
+					       "ELF library initialization failed: %s", elf_errmsg(-1)); //Verify libelf library current and functional
 
-  if ((fd = open(file, O_RDONLY, 0)) < 0)
+  if ((fd = open(file, O_RDONLY, 0)) < 0) //Open input file 
     err(EXIT_FAILURE , "open \"%s\" failed", file);
 
   
-  e = openELF(file, fd);
-  if(!checkElf64(e)) printf("%s is not an ELF-64 object.\n\n", file);
+  e = openELF(file, fd); //Retrieve ELF object from input file 
+  if(!checkElf64(e)){
+    printf("%s is not an ELF-64 object.\n\n", file); //File is NOT in ELF-64 format
+    exit(0); 
+  }
 
   //Print SHA1 Hash of .text section
   printSHA1(e, sha1);
@@ -281,7 +289,7 @@ void parseElf(char *file) {
   //Print Renyi Entropy of .text section
   r = calculateEntropy(e); 
 
-  //Print MD5 Checksum of .text section
+  //Print SHA256 Checksum of .text section
   rsha256 = printSHA256(e);
   
   //Close ELF Object, File
@@ -318,4 +326,5 @@ void parseElf(char *file) {
   fclose(outfile);
   exit(EXIT_SUCCESS);
 }
+
 

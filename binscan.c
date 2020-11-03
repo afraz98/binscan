@@ -4,7 +4,7 @@
 #include "bin/libelf64.h"
 #include <string.h>
 #include "bin/openanalysis.h"
-
+#include "bin/encrypt.h" 
 void printHelp(){
   printf("Welcome to Binscan!\n\n");
   printf("Current supported options:\n\n");
@@ -22,7 +22,9 @@ int main(int argc, char **argv){
   
   if(strcmp(argv[1], "-analyze") == 0 && argc == 3) parseElf(argv[2]); //Parse ELF-64 object
   else if(strcmp(argv[1], "-help") == 0) printHelp(); //Print help for binscan utility
-  else if(strcmp(argv[1], "-open") == 0) openAnalysis(argv[2]); //Open binary file containing analysis 
+  else if(strcmp(argv[1], "-open") == 0) openAnalysis(argv[2]); //Open binary file containing analysis
+  else if(strcmp(argv[1], "-encrypt") == 0) encryptFile(argv[2], argv[3]);
+  else if (strcmp(argv[1], "-decrypt") == 0) decryptFile(argv[2], argv[3]); 
   else printf("Invalid arguments. Type './binscan -help' for more information.\n");
   return 0;
 }
