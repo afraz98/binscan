@@ -22,8 +22,8 @@ about each binary it analyzes:
 
 + 2.3. (8 pts) One of the attributes shall be the **Renyi quadratic entropy of the file’s .text section.**
 
-2.4. (8 pts) One of the attributes shall be a **list of external imported functions** by the binary and a
-count of the number of calls to each.
+- 2.4. (8 pts) One of the attributes shall be a **list of external imported functions** by the binary and a
+- count of the number of calls to each.
 
 + 2.5. (8 pts) The fifth attribute is developer defined; it should be obvious to the user what the
 + attribute is. 
