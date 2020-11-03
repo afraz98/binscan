@@ -1,4 +1,4 @@
-# binscan
+e# binscan
 ## Description
 
 Develop an application that reports information about binaries to a file for analysis and retrieval.
@@ -39,10 +39,12 @@ count of the number of calls to each.
 + information from the binary file.
 
 + (8 pts) The software shall be able to **retrieve and display information about previously analyzed
-- binaries from the data store for a specific user and provide the ability to delete records using an
-- administrator mode.** That is to say that a valid user should be able to view previously analyzed
-- binaries from the data store and only a superuser/administrator has the ability to view and remove
-any record from the data store.
++ binaries from the data store for a specific user and 
+- provide the ability to delete records using an
+- administrator mode.** 
++ That is to say that a valid user should be able to view previously analyzed binaries from the data store 
+- and only a superuser/administrator has the ability to view and remove
+- any record from the data store.
 
 + (1 pts) The software shall run on in the Linux bash shell.
 
@@ -53,7 +55,7 @@ any record from the data store.
 + (1 pts) The software shall use the capstone library for binary disassembly.
 
 + (8 pts) The software shall contain at least one intentional software vulnerability that is attackable via
-either user input or malformed files. **NOTE: PUT THIS IN DOCUMENTATION**
++  either user input or malformed files. **NOTE: PUT THIS IN DOCUMENTATION**
 
 + (10 pts) The software shall contain at least one function written in Intel assembly. This function must
 + be used functionally as part of your implementation of the requirements. It cannot just be a copy of
