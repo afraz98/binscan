@@ -1,0 +1,3 @@
+objcopy -O binary --onlysection=.text <object file> <desired filename>
+sha1sum <desired filename>
+openssl dgst -sha1 <desired filename> 
