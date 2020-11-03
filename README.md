@@ -32,8 +32,8 @@ about each binary it analyzes:
 + disk** (i.e., the stored data must be retrievable across different executions of the software), and the
 + stored date must include all the data printed to STDOUT.
 
-- (8 pts) The software shall **obfuscate or encrypt the file contents on disk** to increase the difficulty of
-- individuals examining the file contents in the case of a compromise or unauthorized system access.
++ (8 pts) The software shall **obfuscate or encrypt the file contents on disk** to increase the difficulty of
++ individuals examining the file contents in the case of a compromise or unauthorized system access.
 
 + (2 pts) The software shall provide an **authentication mechanism** prior to retrieving and displaying
 + information from the binary file.
