@@ -1,4 +1,4 @@
-e# binscan
+# binscan
 ## Description
 
 Develop an application that reports information about binaries to a file for analysis and retrieval.
