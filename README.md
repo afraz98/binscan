@@ -9,8 +9,8 @@ must be obfuscated/encrypted in some way to prevent unauthorized access.
 ## Requirements
 ```diff
 + (3 pts) The application shall only analyze binaries built in the ELF64 format for an intel architecture.
-Files that are not ELF64 files shall not be analyzed beyond identifying that it is not an ELF64 file for an
-intel architecture.
++ Files that are not ELF64 files shall not be analyzed beyond identifying that it is not an ELF64 file for an
++ intel architecture.
 
 The application shall collect and output to STDOUT at least all of the following classes of information
 about each binary it analyzes:
