@@ -17,8 +17,6 @@
 #include <openssl/evp.h>
 #include <math.h>
 
-typedef unsigned char byte; 
-
 int checkElf64(Elf *e){
   int i;
   if ((i = gelf_getclass(e)) == ELFCLASSNONE)
@@ -224,7 +222,7 @@ RenyiEntropy calculateEntropy(Elf *e){
 }
 
 /*fillFileBuffer adapted from Project 1 Example from 2019 given.*/
-int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1, IBuffer ib){
+int fillFileBuffer(uint8_t *buffer, char *argfile, uint8_t *sha1){
   uint8_t *bptr = buffer; //Write file header to outfile
   strncpy(((FileHeader *)buffer)->file_name, argfile, sizeof(((FileHeader *)buffer)->file_name)-1);
   bptr += sizeof(FileHeader);
@@ -297,10 +295,10 @@ void parseElf(char *file) {
   strcat(outputfile, file);
   strcat(outputfile, ".bin");
 
-  printf("Saving analysis to %s ..\n\n\n", outputfile); 
+  printf("Saving analysis to %s ..\n\n", outputfile); 
   
   //Write contents to file
-  recordsize = fillFileBuffer(buffer, file, sha1, ib);
+  recordsize = fillFileBuffer(buffer, file, sha1);
   outfile = fopen(outputfile, "ab+");
 
   //SHA1 and File Header

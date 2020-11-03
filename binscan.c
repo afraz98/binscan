@@ -20,9 +20,9 @@ int main(int argc, char **argv){
     exit(0);
   }
   
-  if(strcmp(argv[1], "-analyze") == 0 && argc == 3) parseElf(argv[2]);
-  else if(strcmp(argv[1], "-help") == 0) printHelp();
-  else if(strcmp(argv[1], "-open") == 0) openAnalysis(argv[2]); 
+  if(strcmp(argv[1], "-analyze") == 0 && argc == 3) parseElf(argv[2]); //Parse ELF-64 object
+  else if(strcmp(argv[1], "-help") == 0) printHelp(); //Print help for binscan utility
+  else if(strcmp(argv[1], "-open") == 0) openAnalysis(argv[2]); //Open binary file containing analysis 
   else printf("Invalid arguments. Type './binscan -help' for more information.\n");
   return 0;
 }

@@ -5,8 +5,6 @@
 #include "bin/binproto.h"
 
 #define PASSWORD_LENGTH 200
-extern long compareCharacters(char a, char b);
-
 void analysisUser(char *file){
   FILE *input;
   FileHeader fh;
