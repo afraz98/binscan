@@ -55,9 +55,9 @@ any record from the data store.
 + (8 pts) The software shall contain at least one intentional software vulnerability that is attackable via
 either user input or malformed files. **NOTE: PUT THIS IN DOCUMENTATION**
 
-(10 pts) The software shall contain at least one function written in Intel assembly. This function must
-be used functionally as part of your implementation of the requirements. It cannot just be a copy of
-the “AddValues” sample function.
++ (10 pts) The software shall contain at least one function written in Intel assembly. This function must
++ be used functionally as part of your implementation of the requirements. It cannot just be a copy of
++ the “AddValues” sample function.
 
 + (1 pts) All functions not provided by the sample source shall be written in C or intel assembly. Note:
 + command line tools may not be invoked from the application to collect the required attributes. The
