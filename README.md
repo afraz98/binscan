@@ -14,7 +14,10 @@ An analysis result binary file is also created under the same name of the ELF-64
 
 ## Installation
 
-1) Install the `OpenSSL` and `Capstone` C packages.
+1) Install the `OpenSSL` and `Capstone` C packages with the following:
+
+``` sudo apt install libcapstone-dev libelf-dev ```
+
 2) Clone this repository.
 3) Use the `make` command in the main repository directory.
 
