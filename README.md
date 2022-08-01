@@ -17,3 +17,37 @@ An analysis result binary file is also created under the same name of the ELF-64
 1) Install the `OpenSSL` and `Capstone` C packages.
 2) Clone this repository.
 3) Use the `make` command in the main repository directory.
+
+## Usage
+
+### Binary Analysis 
+
+For binary analysis, `binscan` should be called from the command-line with the following arguments:
+
+``` 
+binscan -analyzer <binary file name> 
+```
+
+Note: The binary file MUST be a valid ELF-64 object for the `binscan` utility to function properly.
+
+### Analysis Examination
+
+To access analysis files, use the `binscan` utility with the following arguments:
+
+```
+binscan -open <analysis file name>.bin
+```
+
+### Analysis File Encryption
+
+The `binscan` utility supports both encryption and decryption of analysis files. For encryption, the user should input the following:
+
+```
+binscan -encrypt <desired binary to be encrypted>.bin <output file name>.bin
+```
+
+Similarly, for decryption:
+
+```
+binscan -decrypt <desired binary to be decrypted>.bin <output file name>.bin
+```
