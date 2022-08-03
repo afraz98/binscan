@@ -1,0 +1,6 @@
+# Editor artifacts
+.vscode/*
+.idea/*
+
+# Build artifacts
+*.o
