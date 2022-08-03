@@ -19,7 +19,7 @@ void print_help(){
 
 int main(int argc, char **argv){
   if(argc == 1){
-    printf("Invalid arguments. Type './binscan -help' for more information.\n");
+    printf("Invalid arguments. Use '--help' for more information.\n");
     exit(0);
   }
   
@@ -28,6 +28,6 @@ int main(int argc, char **argv){
   else if(strcmp(argv[1], "--open") == 0) open_analysis(argv[2]); //Open binary file containing analysis
   else if(strcmp(argv[1], "--encrypt") == 0) encrypt_file(argv[2], argv[3]); //Encrypt analysis file with shift cipher
   else if (strcmp(argv[1], "--decrypt") == 0) decrypt_file(argv[2], argv[3]); //Decrypt encrypted analysis file 
-  else printf("Invalid arguments. Type '--help' for more information.\n");
+  else printf("Invalid arguments. Use '--help' for more information.\n");
   return 0;
 }

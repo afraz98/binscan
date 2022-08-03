@@ -20,11 +20,9 @@ int check_elf64(Elf *e){
   if ((i = gelf_getclass(e)) == ELFCLASSNONE)
     errx(EXIT_FAILURE , "getclass() failed: %s.",elf_errmsg(-1));
   
-  if(i == ELFCLASS32){ // ELF-32 object
+  if(i == ELFCLASS32)
 	  return 0;
-  } 
-  
-  else return 1;     // ELF-64 object
+  return 1;     // ELF-64 object
 }
 
 Elf* open_elf(char *file, int fd){
@@ -42,6 +40,7 @@ GElf_Shdr find_text_section(Elf *e, Elf_Scn **s){
   
   if (elf_getshdrstrndx(e, &shstrndx) != 0) errx(EXIT_FAILURE, "elf_getshdrstrndx() failed: %s.", elf_errmsg(-1)); // Get section header table index
   *s = NULL;
+  
   while ((*s = elf_nextscn(e,*s)) != NULL){                                                            // Find ".text" section by name                                                                                                                                       
     if (gelf_getshdr(*s, &shdr) != &shdr) errx(EXIT_FAILURE, "getshdr() failed: %s.", elf_errmsg(-1)); // Get section header
 
@@ -54,19 +53,23 @@ GElf_Shdr find_text_section(Elf *e, Elf_Scn **s){
   return shdr; // Return section header
 }
 
-IBuffer print_instructions(unsigned char* buffer, size_t buffersize, uint64_t address){
+IBuffer print_instructions(unsigned char* buffer, size_t buffer_size, uint64_t address){
   csh handle;
   cs_insn *insn;          // Capstone instruction object pointer
   size_t count;           // Number of instructions
-  IBuffer ib;             // Instruction buffer
-  ib.ninstructions = 0;   // Number of instructions
   
-  if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle)) { //Initialize Capstone x86-64 disassembly
+  // Instruction buffer
+  IBuffer ib;
+
+  // Number of instructions
+  ib.ninstructions = 0;   
+  
+  if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) { //Initialize Capstone x86-64 disassembly
     printf("ERROR: Failed to initialize engine!\n");
     return ib;
   }
   
-  count = cs_disasm(handle, buffer, buffersize, address, 0, &insn); // Pass buffer argument, size, section address to start disassembly
+  count = cs_disasm(handle, buffer, buffer_size, address, 0, &insn); // Pass buffer argument, size, section address to start disassembly
   int isUnique = 1; // Is this instruction unique? 
   
   if (count){ // Count > 0?
@@ -102,117 +105,131 @@ IBuffer print_instructions(unsigned char* buffer, size_t buffersize, uint64_t ad
 }
 
 IBuffer parse_text_section(Elf *e){
-  Elf_Scn *scn;                      // Section pointer
-  Elf_Data *data;                    // Section data
-  GElf_Shdr shdr;                    // Section header
-  IBuffer instructions;              // Instruction buffer
+  Elf_Scn *scn_ptr;       // Section pointer
+  Elf_Data *scn_data;     // Section data
+  GElf_Shdr scn_hdr;      // Section header
+  IBuffer instructions;   // Instruction buffer
   
-  shdr = find_text_section(e, &scn); // Find text section header and section pointer
-  data = NULL; 
-  data = elf_getdata(scn, data);     // Get data from .text section
+  // Find text section header and section pointer
+  scn_hdr = find_text_section(e, &scn_ptr); 
+  
+  // Get scn_data from .text section
+  scn_data = elf_getdata(scn_ptr, scn_data);
   
   printf(".text\n");
-  printf("Section starts at 0x%lx\n", shdr.sh_addr);
-  printf("Section length: 0x%lx\n", shdr.sh_size);
+  printf("Section starts at 0x%lx\n", scn_hdr.sh_addr);
+  printf("Section length: 0x%lx\n", scn_hdr.sh_size);
   
   byte *p;
-  p = (byte *)data->d_buf;
-  instructions = print_instructions(p, data->d_size, shdr.sh_addr); // Print instructions in section
+  p = (byte *)scn_data->d_buf;
+
+  // Print instructions in section
+  instructions = print_instructions(p, scn_data->d_size, scn_hdr.sh_addr); 
   
-  return instructions;                                              // Return instruction buffer
+  // Return instruction buffer
+  return instructions;                                              
 }
 
 SHA256Record print_sha256(Elf *e){
   SHA256Record record; //SHA256 checksum
-  Elf_Scn *scn;
-  Elf_Data *data;
+  Elf_Scn *scn_ptr;
   SHA256_CTX shactx;
-
   SHA256_Init(&shactx);
   
-  find_text_section(e, &scn);
-  data = NULL;
-  data = elf_rawdata(scn, data); //Retrieve raw byte data of .text section
-  byte *p = (byte *) data->d_buf; //Make byte pointer of data buffer pointer
+  // Find .text section in binary
+  find_text_section(e, &scn_ptr);
+
+  // Retrieve raw byte scn_data of .text section
+  Elf_Data *scn_data = elf_rawdata(scn_ptr, scn_data);
   
-  while(p < (byte *) (data->d_buf + data->d_size)){
-    SHA256_Update(&shactx, p, sizeof(byte)); //Update checksum
+  // Cast scn_data buffer pointer to byte pointer
+  byte *p = (byte *) scn_data->d_buf;
+  
+  while(p < (byte *) (scn_data->d_buf + scn_data->d_size)){
+    // Update checksum
+    SHA256_Update(&shactx, p, sizeof(byte)); 
     p++;
   } 
-  
-  SHA256_Final(record.sha256, &shactx);  //Finish checksum
-  
+
+  // Finish checksum
+  SHA256_Final(record.sha256, &shactx);  
+
+  // Print checksum
   printf("SHA256: ");
   for(int i = 0; i < SHA256_DIGEST_LENGTH; i++){
-    printf("%02x", record.sha256[i]); //Print checksum
-  } printf("\n");
+    printf("%02x", record.sha256[i]);
+  } 
+  printf("\n");
 
-  return record; //Return SHA256 record
+  // Return SHA256 record
+  return record; 
 }
 
 //Calculate and print SHA1 checksum of text section
 void print_sha1(Elf *e, byte *sha_value){
-  Elf_Scn *scn;
-  Elf_Data *data;
+  Elf_Scn *scn_ptr;
+  Elf_Data *scn_data;
   SHA_CTX sha1ctx;  
   
   
-  find_text_section(e, &scn); 
-  data = NULL;
-  data = elf_rawdata(scn, data);  // Retrieve raw byte data of .text section
-  byte *p = (byte *) data->d_buf; // Make byte pointer of data buffer pointer
+  find_text_section(e, &scn_ptr); 
+  scn_data = NULL;
+  scn_data = elf_rawdata(scn_ptr, scn_data);  // Retrieve raw byte scn_data of .text section
+  byte *p = (byte *) scn_data->d_buf; // Make byte pointer of scn_data buffer pointer
   SHA1_Init(&sha1ctx);
   
-  while(p < (byte *) (data->d_buf + data->d_size)){
-    // UPDATE SHA1 Hash variable
+  while(p < (byte *) (scn_data->d_buf + scn_data->d_size)){
+   // UPDATE SHA1 Hash variable
    SHA1_Update(&sha1ctx, p, sizeof(byte));
    p++; 
-  } SHA1_Final(sha_value, &sha1ctx); //Finalize checksum
+  } 
+  
+  SHA1_Final(sha_value, &sha1ctx); // Finalize checksum
   
   printf("SHA1: ");
   for(int i = 0; i < SHA_DIGEST_LENGTH; i++){
-    printf("%02x", sha_value[i]); //Print SHA1 checksum
+    printf("%02x", sha_value[i]); // Print SHA1 checksum
   } printf("\n");
 }
 
-//Check if byte array contains a certain byte 
+// Check if byte array contains a certain byte 
 int contains_byte(byte *array, int length, byte b){
-  if (length == 0){ return 0; } //Empty array
+  if (length == 0){ return 0; }  // Empty array
   for(int i = 0; i < length; i++){
-    if(array[i] == b) return 1;  //Byte in array
+    if(array[i] == b) return 1;  // Byte in array
   } return 0; 
 }
 
-//Calculate and print Renyi Entropy of text section
+// Calculate and print Renyi Entropy of text section
 RenyiEntropy calculate_renyi_entropy(Elf *e){
   RenyiEntropy r;  //Entropy value
   
-  Elf_Scn *scn;
-  Elf_Data *data;
+  Elf_Scn *scn_ptr;
+  Elf_Data *scn_data;
   byte* start, *next;
 
-  find_text_section(e, &scn);
-  data = NULL; data = elf_rawdata(scn, data);
+  find_text_section(e, &scn_ptr);
+  scn_data = NULL; scn_data = elf_rawdata(scn_ptr, scn_data);
 
-  double num_bytes = 0; //Number of bytes in .text section
-  start = data->d_buf; //Point to start of section data
-  while(start < (byte*) (data->d_buf + data->d_size)){
+  double num_bytes = 0; // Number of bytes in .text section
+  start = scn_data->d_buf;  // Point to start of section scn_data
+  while(start < (byte*) (scn_data->d_buf + scn_data->d_size)){
     start++; num_bytes++;
   } printf("%d bytes in section .text\n", (int) num_bytes);
 
-  int byteschecked = 0; //Number of bytes checked
-  byte textBytes[(int) num_bytes]; //Array of unique bytes
+  int byteschecked = 0;             // Number of bytes checked
+  byte textBytes[(int) num_bytes];  // Array of unique bytes
 
-  double frequency = 0; //Frequency of byte being checked
-  double probability_sum = 0.0;//Ongoing sum of squared byte probabilities
-  start = data->d_buf;
+  double frequency = 0;             // Frequency of byte being checked
+  double probability_sum = 0.0;     // Ongoing sum of squared byte probabilities
+  start = scn_data->d_buf;
 
-  while(start < (byte *) (data->d_buf + data->d_size)){
+  while(start < (byte *) (scn_data->d_buf + scn_data->d_size)){
     if(!contains_byte(textBytes, byteschecked, *start)){ //Unique byte? frequency not already parsed
       next = start;
       next++;
       frequency = 1; 
-      while(next < (byte *) (data->d_buf + data->d_size)){
+      while(next < (byte *) (scn_data->d_buf + scn_data->d_size)){
 	if(*next == *start){ //Count frequency of byte
 	  frequency++;
 	} next++; 
@@ -244,12 +261,12 @@ int fill_file_buffer(uint8_t *buffer, char *argfile, uint8_t *sha1){
 // Main driver function
 void parse_elf(char *file) {
   int fd;                 // File descriptor
-  Elf *e;                 // ELF Object pointer
-  char *outputfile;       // Output file name
+  Elf *elf_ptr;           // ELF Object pointer
+  char *output_filename;  // Output file name
   FILE *outfile;          // Output file object
   
   byte buffer[0x5000];    // Outfile buffer
-  int recordsize;         // Size of outfile buffer
+  int record_size;         // Size of outfile buffer
 
   IBuffer ib;             // Instruction buffer
   RenyiEntropy r;         // Renyi entropy struct
@@ -262,45 +279,47 @@ void parse_elf(char *file) {
   if ((fd = open(file, O_RDONLY, 0)) < 0) //Open input file 
     err(EXIT_FAILURE , "open \"%s\" failed", file);
 
+  // Retrieve ELF object from input file 
+  elf_ptr = open_elf(file, fd);
   
-  e = open_elf(file, fd); //Retrieve ELF object from input file 
-  if(!check_elf64(e)){
-    printf("%s is not an ELF-64 object.\n\n", file); //File is NOT in ELF-64 format
+  if(!check_elf64(elf_ptr)){
+    // File is NOT in ELF-64 format
+    printf("%s is not an ELF-64 object.\n\n", file);
     exit(0); 
   }
 
   // Print SHA1 Hash of .text section
-  print_sha1(e, sha1);
+  print_sha1(elf_ptr, sha1);
   printf("\n");
 
   // Print unique instructions with call counts
-  ib = parse_text_section(e);
+  ib = parse_text_section(elf_ptr);
   printf("\n");
 
   // Print Renyi Entropy of .text section
-  r = calculate_renyi_entropy(e); 
+  r = calculate_renyi_entropy(elf_ptr); 
 
   // Print SHA256 Checksum of .text section
-  rsha256 = print_sha256(e);
+  rsha256 = print_sha256(elf_ptr);
   
   // Close ELF Object, File
-  elf_end(e);
+  elf_end(elf_ptr);
   close(fd);
   
   // Generate output file name from file argument
-  outputfile = malloc(strlen(file) + strlen(".bin")) + 1;
-  outputfile[0] = '\0';
+  output_filename = malloc(strlen(file) + strlen(".bin")) + 1;
+  output_filename[0] = '\0';
 
-  strcat(outputfile, file);
-  strcat(outputfile, ".bin");
-  printf("Saving analysis to %s ..\n\n", outputfile); 
+  strcat(output_filename, file);
+  strcat(output_filename, ".bin");
+  printf("Saving analysis to %s ..\n\n", output_filename); 
   
   // Write contents to file
-  recordsize = fill_file_buffer(buffer, file, sha1);
-  outfile = fopen(outputfile, "ab+");
+  record_size = fill_file_buffer(buffer, file, sha1);
+  outfile = fopen(output_filename, "ab+");
 
   // SHA1 and File Header
-  fwrite(buffer, sizeof(uint8_t), recordsize, outfile);
+  fwrite(buffer, sizeof(uint8_t), record_size, outfile);
 
   // Instruction buffer
   fwrite(&ib, sizeof(IBuffer), 1, outfile);

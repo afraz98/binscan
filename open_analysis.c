@@ -21,16 +21,16 @@ void open_analysis(char *file){
 
   printf("Analysis of %s binary\n\n", fh.file_name);
   printf("SHA1: ");
+  
   for(int i = 0; i < SHA_DIGEST_LENGTH; i++){
     printf("%02x", sharecord.sha1[i]);
-  } printf("\n\n");
+  }
 
   for(int i = 0; i < ib.ninstructions; i++){
     printf("%s\t%d\n", ib.instructions[i].instruction, ib.instructions[i].instruction_calls);
-  } printf("\n");
-
-  printf("Renyi Entropy: %lf\n\n", r.entropy);
-
+  }
+  
+  printf("Renyi Entropy: %lf\n", r.entropy);
   printf("SHA256: ");
   for(unsigned int i = 0; i < SHA256_DIGEST_LENGTH; i++){
     printf("%02x", sha256record.sha256[i]);
