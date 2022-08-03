@@ -40,6 +40,6 @@ $(OBJ4): compare.s
 $(OBJ5): encrypt.c
 	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $(OBJ5) 
 
-#Remove unnecessary object files, analysis files, executable itself
+#Remove unnecessary object files
 clean:
-	rm *.o binscan *.bin
+	rm *.o

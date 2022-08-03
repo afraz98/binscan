@@ -4,7 +4,7 @@
 #include "bin/libelf64.h"
 #include "bin/encrypt.h"
 
-void encryptFile(char *file, char *outputfile){
+void encrypt_file(char *file, char *outputfile){
   FILE *input;
   FILE *output;
 
@@ -24,7 +24,7 @@ void encryptFile(char *file, char *outputfile){
   
 }
 
-void decryptFile(char *file, char *outputfile){
+void decrypt_file(char *file, char *outputfile){
   FILE *input;
   FILE *output;
   

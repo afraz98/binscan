@@ -1,8 +1,8 @@
 	segment .text
 	BITS 64
-	global compareCharacters
+	global compare_characters
 
-compareCharacters:
+compare_characters:
 	push rbp
 	mov rbp, rsp
 	sub rsp, 8
