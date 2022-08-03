@@ -14,6 +14,8 @@
 #include <openssl/evp.h>
 #include <math.h>
 
+#define CODE "\x55\x48\x8b\x05\xb8\x13\x00\x00"
+
 int check_elf64(Elf *e){
   int i;
   
@@ -21,42 +23,62 @@ int check_elf64(Elf *e){
     errx(EXIT_FAILURE , "getclass() failed: %s.",elf_errmsg(-1));
   
   if(i == ELFCLASS32)
-	  return 0;
-  return 1;     // ELF-64 object
+	  // Not a valid ELF-64 object.
+    return 0;
+  
+  // Valid ELF-64 object
+  return 1;     
 }
 
 Elf* open_elf(char *file, int fd){
   Elf *e; 
   if ((e = elf_begin(fd, ELF_C_READ, NULL)) == NULL) errx(EXIT_FAILURE , "elf_begin() failed: %s.",elf_errmsg(-1)); 
-  if (elf_kind(e) != ELF_K_ELF) errx(EXIT_FAILURE , "\"%s\" is not an ELF-64 object.", file); // Another check for ELF-64 object.
+
+  // Another check for ELF-64 object.
+  if (elf_kind(e) != ELF_K_ELF) errx(EXIT_FAILURE , "\"%s\" is not an ELF-64 object.", file); 
   
   return e; 
 }
 
 GElf_Shdr find_text_section(Elf *e, Elf_Scn **s){
-  char *name = "";  // Section name
-  size_t shstrndx;  // Section header table index
-  GElf_Shdr shdr;   // Section header
+  // Section name
+  char *name = "";  
   
-  if (elf_getshdrstrndx(e, &shstrndx) != 0) errx(EXIT_FAILURE, "elf_getshdrstrndx() failed: %s.", elf_errmsg(-1)); // Get section header table index
+  // Section header table index
+  size_t shstrndx;  
+  
+  // Section header
+  GElf_Shdr shdr;   
+  
+  // Get section header table index
+  if (elf_getshdrstrndx(e, &shstrndx) != 0) errx(EXIT_FAILURE, "elf_getshdrstrndx() failed: %s.", elf_errmsg(-1)); 
   *s = NULL;
   
-  while ((*s = elf_nextscn(e,*s)) != NULL){                                                            // Find ".text" section by name                                                                                                                                       
-    if (gelf_getshdr(*s, &shdr) != &shdr) errx(EXIT_FAILURE, "getshdr() failed: %s.", elf_errmsg(-1)); // Get section header
+  // Find ".text" section by name
+  while ((*s = elf_nextscn(e,*s)) != NULL){                                                            
+    // Get section header                                                                                                                                       
+    if (gelf_getshdr(*s, &shdr) != &shdr) errx(EXIT_FAILURE, "getshdr() failed: %s.", elf_errmsg(-1)); 
 
-    if((name = elf_strptr (e,shstrndx,shdr.sh_name)) == NULL) //Get section name
+    // Get section name
+    if((name = elf_strptr (e,shstrndx, shdr.sh_name)) == NULL) 
       errx(EXIT_FAILURE, "elf_strptr() failed: %s.", elf_errmsg ( -1));
 
-    if(strcmp(name, ".text") == 0){ break; } //Name is .text? 
+    // name == '.text' ? 
+    if(strcmp(name, ".text") == 0){ break; } 
   } 
   
   return shdr; // Return section header
 }
 
 IBuffer print_instructions(unsigned char* buffer, size_t buffer_size, uint64_t address){
+  // Capstone handler object
   csh handle;
-  cs_insn *insn;          // Capstone instruction object pointer
-  size_t count;           // Number of instructions
+
+  // Capstone instruction object pointer
+  cs_insn *insn;
+
+  // Number of instructions
+  size_t count;
   
   // Instruction buffer
   IBuffer ib;
@@ -64,39 +86,56 @@ IBuffer print_instructions(unsigned char* buffer, size_t buffer_size, uint64_t a
   // Number of instructions
   ib.ninstructions = 0;   
   
-  if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) { //Initialize Capstone x86-64 disassembly
+  // Initialize Capstone x86-64 disassembly
+  if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) { 
     printf("ERROR: Failed to initialize engine!\n");
     return ib;
   }
   
-  count = cs_disasm(handle, buffer, buffer_size, address, 0, &insn); // Pass buffer argument, size, section address to start disassembly
-  int isUnique = 1; // Is this instruction unique? 
+  // Pass buffer argument, size, section address to start disassembly
+  count = cs_disasm(handle, CODE, sizeof(CODE)-1, 0x1000, 0, &insn); 
   
-  if (count){ // Count > 0?
-    for (size_t j = 0; j < count; j++) { // Iterate over instructions 
-      isUnique = 1; // Unique instruction flag
+  // Is this instruction unique? 
+  int isUnique = 1; 
+  
+  // Count > 0?
+  if (count > 0){ 
+    // Iterate over instructions 
+    for (size_t j = 0; j < count; j++) {
+      printf("0x%"PRIx64":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic, insn[j].op_str);
+
+      // Unique instruction flag
+      isUnique = 1;
+      
+      // See if instruction already in buffer
       for(size_t is = 0; is < ib.ninstructions; is++){
-        if(strcmp(ib.instructions[is].instruction, insn[j].mnemonic) == 0) isUnique = 0; // See if instruction already in buffer
+        if(strcmp(ib.instructions[is].instruction, insn[j].mnemonic) == 0) isUnique = 0; 
       }
       
-      if(isUnique){ // Unique instruction -- add to buffer
+      if(isUnique){
+        // Unique instruction -- add to buffer
         strcpy(ib.instructions[ib.ninstructions].instruction, insn[j].mnemonic);
         ib.ninstructions++;
       }
     }
 
-    for(size_t m = 0; m < ib.ninstructions; m++){ // Iterate over instructions
-      ib.instructions[m].instruction_calls = 1;
+    printf("\n");
+    
+    // Iterate over instructions
+    for(size_t m = 0; m < ib.ninstructions; m++){ 
+      ib.instructions[m].instruction_calls = 0;
       
-      for(size_t j = 0; j < count; j++){ // Count how many calls to instruction i
+      for(size_t j = 0; j < count; j++){ 
+        // Count calls to instruction i
 	      if(strcmp(ib.instructions[m].instruction, insn[j].mnemonic) == 0) ib.instructions[m].instruction_calls++;
       } 
       
       printf("%s\t%d\n", ib.instructions[m].instruction, ib.instructions[m].instruction_calls);
     }
-    cs_free(insn, count); // Free capstone instruction object pointer
-  }
-  else {
+
+    // Free capstone instruction object pointer
+    cs_free(insn, count); 
+  } else {
     printf("ERROR: Failed to disassemble given code!\n");
   }  
   
@@ -118,7 +157,7 @@ IBuffer parse_text_section(Elf *e){
   
   printf(".text\n");
   printf("Section starts at 0x%lx\n", scn_hdr.sh_addr);
-  printf("Section length: 0x%lx\n", scn_hdr.sh_size);
+  printf("Section length: 0x%lx\n\n", scn_hdr.sh_size);
   
   byte *p;
   p = (byte *)scn_data->d_buf;
