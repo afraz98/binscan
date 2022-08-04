@@ -93,7 +93,7 @@ IBuffer print_instructions(unsigned char* buffer, size_t buffer_size, uint64_t a
   }
   
   // Pass buffer argument, size, section address to start disassembly
-  count = cs_disasm(handle, CODE, sizeof(CODE)-1, 0x1000, 0, &insn); 
+  count = cs_disasm(handle, buffer, buffer_size, address, 0, &insn); 
   
   // Is this instruction unique? 
   int isUnique = 1; 
