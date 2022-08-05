@@ -10,8 +10,7 @@ LIBELF = libelf64
 OBJ1 = libelf64.o
 OBJ2 = binscan.o
 OBJ3 = open_analysis.o
-OBJ4 = compare.o
-OBJ5 = encrypt.o
+OBJ4 = encrypt.o
 
 # Binscan: Main executable target
 BINSCAN = binscan
@@ -19,7 +18,7 @@ BINSCAN = binscan
 # Main executable target
 all: $(BINSCAN)
 $(BINSCAN): $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ4) $(OBJ5)
-	$(CC) $(CFLAGS) -o $(BINSCAN) $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ4) $(OBJ5) $(FLAGS)
+	$(CC) $(CFLAGS) -o $(BINSCAN) $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ4) $(FLAGS)
 
 # Compile ELF-64 Binary Parsing
 $(OBJ1): libelf64.c
@@ -33,12 +32,8 @@ $(OBJ2): binscan.c
 $(OBJ3): open_analysis.c
 	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $(OBJ3)
 
-# Compile compare_characters NASM function
-$(OBJ4): compare.s
-	nasm -f elf64 compare.s
-
-$(OBJ5): encrypt.c
-	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $(OBJ5) 
+$(OBJ4): encrypt.c
+	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $(OBJ4) 
 
 # Remove unnecessary object files
 clean:
