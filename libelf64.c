@@ -23,7 +23,7 @@ int check_elf64(Elf *e){
     errx(EXIT_FAILURE , "getclass() failed: %s.",elf_errmsg(-1));
   
   if(i == ELFCLASS32)
-	  // Not a valid ELF-64 object.
+	  // NOT a valid ELF-64 object.
     return 0;
   
   // Valid ELF-64 object
@@ -35,9 +35,41 @@ Elf* open_elf(char *file, int fd){
   if ((e = elf_begin(fd, ELF_C_READ, NULL)) == NULL) errx(EXIT_FAILURE , "elf_begin() failed: %s.",elf_errmsg(-1)); 
 
   // Another check for ELF-64 object.
-  if (elf_kind(e) != ELF_K_ELF) errx(EXIT_FAILURE , "\"%s\" is not an ELF-64 object.", file); 
+  if (elf_kind(e) != ELF_K_ELF) errx(EXIT_FAILURE , "\"%s\" is NOT an ELF-64 object.", file); 
   
   return e; 
+}
+
+void parse_elf_sections(Elf *e, Elf_Scn **s){
+  char *section_name = "";    // Section name
+
+  size_t shstrndx;    // Section header table index
+  GElf_Shdr shdr;     // Section header
+
+  // Get section header table index
+  if (elf_getshdrstrndx(e, &shstrndx) != 0) errx(EXIT_FAILURE, "elf_getshdrstrndx() failed: %s.", elf_errmsg(-1)); 
+  *s = NULL;
+  
+  // Iterate over sections
+  while ((*s = elf_nextscn(e,*s)) != NULL){                                                            
+    // Get section header                                                                                                                                       
+    if (gelf_getshdr(*s, &shdr) != &shdr) errx(EXIT_FAILURE, "getshdr() failed: %s.", elf_errmsg(-1)); 
+
+    // Get section name
+    if((section_name = elf_strptr(e, shstrndx, shdr.sh_name)) == NULL) errx(EXIT_FAILURE, "elf_strptr() failed: %s.", elf_errmsg(-1));
+    
+    printf("Section:\t\t\t%s\n", section_name);
+  } 
+}
+
+void print_elf_info(Elf *e){
+  size_t shstrndx;
+  GElf_Shdr shdr;
+  Elf_Scn* scn_ptr;
+  Elf_Data* scn_data;
+  GElf_Shdr scn_hdr;
+
+  parse_elf_sections(e, &scn_ptr);
 }
 
 GElf_Shdr find_text_section(Elf *e, Elf_Scn **s){
@@ -148,14 +180,14 @@ IBuffer parse_text_section(Elf *e){
   Elf_Data *scn_data;     // Section data
   GElf_Shdr scn_hdr;      // Section header
   IBuffer instructions;   // Instruction buffer
-  
+
   // Find text section header and section pointer
   scn_hdr = find_text_section(e, &scn_ptr); 
   
   // Get scn_data from .text section
   scn_data = elf_getdata(scn_ptr, scn_data);
   
-  printf(".text\n");
+  printf(".text section found\n");
   printf("Section starts at 0x%lx\n", scn_hdr.sh_addr);
   printf("Section length: 0x%lx\n\n", scn_hdr.sh_size);
   
@@ -299,18 +331,18 @@ int fill_file_buffer(uint8_t *buffer, char *argfile, uint8_t *sha1){
 
 // Main driver function
 void parse_elf(char *file) {
-  int fd;                 // File descriptor
-  Elf *elf_ptr;           // ELF Object pointer
-  char *output_filename;  // Output file name
-  FILE *outfile;          // Output file object
+  int fd;                       // File descriptor
+  Elf *elf_ptr;                 // ELF Object pointer
+  char *output_filename;        // Output file name
+  FILE *outfile;                // Output file object
   
-  byte buffer[0x5000];    // Outfile buffer
-  int record_size;         // Size of outfile buffer
+  byte buffer[0x5000];          // Outfile buffer
+  int record_size;              // Size of outfile buffer
 
-  IBuffer ib;             // Instruction buffer
-  RenyiEntropy r;         // Renyi entropy struct
-  SHA256Record rsha256;   // SHA256 checksum struct
-  byte sha1[SHA_DIGEST_LENGTH]; //SHA1 checksum byte array 
+  IBuffer ib;                   // Instruction buffer
+  RenyiEntropy r;               // Renyi entropy struct
+  SHA256Record rsha256;         // SHA256 checksum struct
+  byte sha1[SHA_DIGEST_LENGTH]; // SHA1 checksum byte array 
   
   if (elf_version(EV_CURRENT) == EV_NONE) errx(EXIT_FAILURE ,
 					       "ELF library initialization failed: %s", elf_errmsg(-1)); //Verify libelf library current and functional
@@ -329,6 +361,12 @@ void parse_elf(char *file) {
 
   // Print SHA1 Hash of .text section
   print_sha1(elf_ptr, sha1);
+  printf("\n");
+
+
+  // Parse all ELF sections
+  printf("Parsing ELF sections ...\n");
+  print_elf_info(elf_ptr);
   printf("\n");
 
   // Print unique instructions with call counts

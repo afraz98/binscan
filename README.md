@@ -10,7 +10,7 @@ an ELF-64 object file are printed, including
 3) The [Renyi Entropy](https://en.wikipedia.org/wiki/R%C3%A9nyi_entropy) of the ELF-64 object's `.text` section
 4) The `SHA-256` checksum of the binary's `.text` section
 
-An analysis result binary file is also created under the same name of the ELF-64 binary analyzed with the `.bin` file extension. The user may later open these bin files with the `-open` option.
+An analysis result binary file is also created under the same name of the ELF-64 binary analyzed with the `.bin` file extension. The user may later open these bin files with the `--open` option.
 
 ## Installation
 
