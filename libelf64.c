@@ -57,18 +57,15 @@ void parse_elf_sections(Elf *e, Elf_Scn **s){
 
     // Get section name
     if((section_name = elf_strptr(e, shstrndx, shdr.sh_name)) == NULL) errx(EXIT_FAILURE, "elf_strptr() failed: %s.", elf_errmsg(-1));
-    
+  
     printf("Section:\t\t\t%s\n", section_name);
+    printf("Section address:\t\t0x%lx\n", shdr.sh_addr);
+    printf("Section size:\t\t\t0x%lx\n\n", shdr.sh_size);
   } 
 }
 
 void print_elf_info(Elf *e){
-  size_t shstrndx;
-  GElf_Shdr shdr;
   Elf_Scn* scn_ptr;
-  Elf_Data* scn_data;
-  GElf_Shdr scn_hdr;
-
   parse_elf_sections(e, &scn_ptr);
 }
 
