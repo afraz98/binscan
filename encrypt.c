@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bin/libelf64.h"
+#include "bin/elf_parser.h"
 #include "bin/encrypt.h"
 
 void encrypt_file(char *file, char *outputfile){
