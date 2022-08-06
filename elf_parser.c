@@ -57,7 +57,7 @@ void parse_elf_sections(Elf *e, Elf_Scn **s){
     if((section_name = elf_strptr(e, shstrndx, shdr.sh_name)) == NULL) errx(EXIT_FAILURE, "elf_strptr() failed: %s.", elf_errmsg(-1));
   
     printf("Section:\t\t\t%s\n", section_name);
-    printf("Section address:\t\t0x%lx\n", shdr.sh_addr, shdr.sh_addr);
+    printf("Section address:\t\t0x%lx\n", shdr.sh_addr);
     printf("Section size:\t\t\t0x%lx (%ld)\n\n", shdr.sh_size, shdr.sh_size);
   } 
 }
@@ -172,7 +172,7 @@ IBuffer print_instructions(unsigned char* buffer, size_t buffer_size, uint64_t a
 
 IBuffer parse_text_section(Elf *e){
   Elf_Scn *scn_ptr;       // Section pointer
-  Elf_Data *scn_data;     // Section data
+  Elf_Data *scn_data = NULL;     // Section data
   GElf_Shdr scn_hdr;      // Section header
   IBuffer instructions;   // Instruction buffer
 
@@ -199,6 +199,8 @@ IBuffer parse_text_section(Elf *e){
 SHA256Record print_sha256(Elf *e){
   SHA256Record record; //SHA256 checksum
   Elf_Scn *scn_ptr;
+  Elf_Data *scn_data = NULL;
+  
   SHA256_CTX shactx;
   SHA256_Init(&shactx);
   
@@ -206,7 +208,7 @@ SHA256Record print_sha256(Elf *e){
   find_text_section(e, &scn_ptr);
 
   // Retrieve raw byte scn_data of .text section
-  Elf_Data *scn_data = elf_rawdata(scn_ptr, scn_data);
+  scn_data = elf_rawdata(scn_ptr, scn_data);
   
   // Cast scn_data buffer pointer to byte pointer
   byte *p = (byte *) scn_data->d_buf;
