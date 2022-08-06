@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "bin/analysis_parser.h"
 #include "bin/bin_proto.h"
 
-void parse_analysis(char *file){
+void parse_analysis(char* file){
   FILE *input;
   FileHeader fh;
   SHA1Record sharecord;
