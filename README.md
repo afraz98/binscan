@@ -61,11 +61,176 @@ binscan --decrypt <desired binary to be decrypted>.bin <output file name>.bin
 Running `binscan` on `test_executables/sample_exe64.elf`:
 
 ```
-binscan --analyze sample_exe64.elf
-
+toeknee@macaroni-pc:~/git-repos/binscan$ ./binscan --analyze test_executables/sample_exe64.elf 
 SHA1: 05aa7489b8390300a58540179f6a203d980f6d14
 
-.text
+Parsing ELF sections ...
+Section:			.interp
+Section address:		0x400238
+Section size:			0x1c
+
+Section:			.note.ABI-tag
+Section address:		0x400254
+Section size:			0x20
+
+Section:			.note.SuSE
+Section address:		0x400274
+Section size:			0x18
+
+Section:			.note.gnu.build-id
+Section address:		0x40028c
+Section size:			0x24
+
+Section:			.hash
+Section address:		0x4002b0
+Section size:			0x18
+
+Section:			.gnu.hash
+Section address:		0x4002c8
+Section size:			0x1c
+
+Section:			.dynsym
+Section address:		0x4002e8
+Section size:			0x48
+
+Section:			.dynstr
+Section address:		0x400330
+Section size:			0x38
+
+Section:			.gnu.version
+Section address:		0x400368
+Section size:			0x6
+
+Section:			.gnu.version_r
+Section address:		0x400370
+Section size:			0x20
+
+Section:			.rela.dyn
+Section address:		0x400390
+Section size:			0x18
+
+Section:			.rela.plt
+Section address:		0x4003a8
+Section size:			0x18
+
+Section:			.init
+Section address:		0x4003c0
+Section size:			0x18
+
+Section:			.plt
+Section address:		0x4003d8
+Section size:			0x20
+
+Section:			.text
+Section address:		0x400400
+Section size:			0x1f8
+
+Section:			.fini
+Section address:		0x4005f8
+Section size:			0xe
+
+Section:			.rodata
+Section address:		0x400608
+Section size:			0x4
+
+Section:			.eh_frame_hdr
+Section address:		0x40060c
+Section size:			0x24
+
+Section:			.eh_frame
+Section address:		0x400630
+Section size:			0x94
+
+Section:			.ctors
+Section address:		0x600e18
+Section size:			0x10
+
+Section:			.dtors
+Section address:		0x600e28
+Section size:			0x10
+
+Section:			.jcr
+Section address:		0x600e38
+Section size:			0x8
+
+Section:			.dynamic
+Section address:		0x600e40
+Section size:			0x1a0
+
+Section:			.got
+Section address:		0x600fe0
+Section size:			0x8
+
+Section:			.got.plt
+Section address:		0x600fe8
+Section size:			0x20
+
+Section:			.data
+Section address:		0x601008
+Section size:			0x14
+
+Section:			.bss
+Section address:		0x601020
+Section size:			0x10
+
+Section:			.comment.SUSE.OPTs
+Section address:		0x0
+Section size:			0x6
+
+Section:			.comment
+Section address:		0x0
+Section size:			0x39
+
+Section:			.debug_aranges
+Section address:		0x0
+Section size:			0x90
+
+Section:			.debug_pubnames
+Section address:		0x0
+Section size:			0x83
+
+Section:			.debug_info
+Section address:		0x0
+Section size:			0x2d2
+
+Section:			.debug_abbrev
+Section address:		0x0
+Section size:			0x19f
+
+Section:			.debug_line
+Section address:		0x0
+Section size:			0x157
+
+Section:			.debug_frame
+Section address:		0x0
+Section size:			0x90
+
+Section:			.debug_str
+Section address:		0x0
+Section size:			0x12d
+
+Section:			.debug_loc
+Section address:		0x0
+Section size:			0x14a
+
+Section:			.debug_ranges
+Section address:		0x0
+Section size:			0x50
+
+Section:			.shstrtab
+Section address:		0x0
+Section size:			0x192
+
+Section:			.symtab
+Section address:		0x0
+Section size:			0x780
+
+Section:			.strtab
+Section address:		0x0
+Section size:			0x1fd
+
+
+.text section found
 Section starts at 0x400400
 Section length: 0x1f8
 
@@ -257,5 +422,4 @@ jmp	1
 Renyi Entropy: 0.181157
 SHA256: 5836ed6ff8f9057666f469b96dd6e3992c8026767755223380bc48053882f9d6
 Saving analysis to test_executables/sample_exe64.elf.bin ..
-
 ```

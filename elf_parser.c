@@ -1,4 +1,4 @@
-#include "bin/libelf64.h"
+#include "bin/elf_parser.h"
 #include "bin/bin_proto.h"
 
 #include <stdio.h> 
@@ -13,8 +13,6 @@
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 #include <math.h>
-
-#define CODE "\x55\x48\x8b\x05\xb8\x13\x00\x00"
 
 int check_elf64(Elf *e){
   int i;
