@@ -1,0 +1,12 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+
+# Set project name and version
+PROJECT(binscan VERSION 0.1 LANGUAGES C)
+
+FILE(GLOB SOURCES "src/*.c")
+
+ADD_EXECUTABLE(binscan ${SOURCES})
+
+TARGET_LINK_LIBRARIES(binscan PUBLIC elf crypto capstone m)
+
+TARGET_INCLUDE_DIRECTORIES(binscan PRIVATE ${PROJECT_SOURCE_DIR}/include)

@@ -1,6 +1,3 @@
-#include "bin/elf_parser.h"
-#include "bin/bin_proto.h"
-
 #include <stdio.h> 
 #include <stdint.h> 
 #include <stdlib.h> 
@@ -13,6 +10,9 @@
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 #include <math.h>
+
+#include "elf_parser.h"
+#include "bin_proto.h"
 
 int check_elf64(Elf *e){
   int i;

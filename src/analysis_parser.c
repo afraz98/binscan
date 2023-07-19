@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bin/analysis_parser.h"
-#include "bin/bin_proto.h"
+#include "analysis_parser.h"
+#include "bin_proto.h"
 
 void parse_analysis(char* file){
   FILE *input;

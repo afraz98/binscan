@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <openssl/evp.h>
 #include <stdlib.h>
-#include "bin/elf_parser.h"
 #include <string.h>
-#include "bin/analysis_parser.h"
-#include "bin/encrypt.h" 
+
+#include "analysis_parser.h"
+#include "elf_parser.h"
+#include "encrypt.h" 
 
 void print_help(){
-  printf("Welcome to Binscan!\n\n");
-  printf("Currently supported options:\n\n");
-
+  printf("Usage:\n");
   printf("--help: Print information on binscan\n");
   printf("--analyze: Analyze ELF-64 binary. Requires file argument. Example call: ./binscan --analyze helloworld\n");
   printf("--open: Open binary file produced by analyze command.\n");
@@ -19,7 +18,7 @@ void print_help(){
 
 int main(int argc, char **argv){
   if(argc == 1){
-    printf("Invalid arguments. Use '--help' for more information.\n");
+    print_help();
     exit(0);
   }
   

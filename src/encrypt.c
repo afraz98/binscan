@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bin/elf_parser.h"
-#include "bin/encrypt.h"
+#include "elf_parser.h"
+#include "encrypt.h"
 
 void encrypt_file(char *file, char *outputfile){
   FILE *input;
@@ -42,3 +42,4 @@ void decrypt_file(char *file, char *outputfile){
     exit(0);
   }
 }
+  
